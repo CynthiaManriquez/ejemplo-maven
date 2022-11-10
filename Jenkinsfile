@@ -1,3 +1,14 @@
-library 'pipeline-devops'
+pipeline {
+    agent any 
+  
 
-ejecucion.call()
+    stages {
+        stage('hola') {
+            steps {
+                echo 'hola mundo'
+              
+            }
+        }
+       
+    }
+}
