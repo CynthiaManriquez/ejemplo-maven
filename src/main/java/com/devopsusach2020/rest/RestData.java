@@ -48,7 +48,7 @@ public class RestData {
 		Gson gson = new Gson();
 		if(call != null )
 		{
-			var body= call.getBody();
+			String body= call.getBody();
 			if(body != null)
 			{
 				Pais[] estados = gson.fromJson(body.toLowerCase(), Pais[].class);
@@ -83,7 +83,7 @@ public class RestData {
 		Gson gson = new Gson();
 		if(call != null)
 		{
-			var body = call.getBody();
+			String body = call.getBody();
 			if(body != null)
 			{
 				Mundial estado = gson.fromJson(body.toLowerCase(), Mundial.class);
