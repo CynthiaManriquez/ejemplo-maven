@@ -38,8 +38,8 @@ public class RestData {
 	public @ResponseBody Pais getTotalPais(@RequestParam(name = "pais") String message){
 		RestTemplate restTemplate = new RestTemplate();
 	    ResponseEntity<String> call= restTemplate.getForEntity("https://api.covid19api.com/live/country/" + message ,String.class);
-	    
-	    LOGGER.log(Level.INFO, "Consulta por pais");
+	    String mensaje="Consulta por pais";
+	    LOGGER.log(Level.INFO, mensaje);
 	    
 		Pais response = new Pais();
 		int confirmed = 0;
@@ -48,11 +48,10 @@ public class RestData {
 		Gson gson = new Gson();
 		if(call != null )
 		{
-			String body= call.getBody();
-			if(body != null)
+			String body= call.getBody();			
+			Pais[] estados = (body != null)? gson.fromJson(body.toLowerCase(), Pais[].class):null;
+			if(estados != null)
 			{
-				Pais[] estados = gson.fromJson(body.toLowerCase(), Pais[].class);
-
 				for(Pais estado : estados) {
 					response.setDate(estado.getDate());
 					response.setActive(estado.getActive());
@@ -60,13 +59,13 @@ public class RestData {
 					death += estado.getDeaths();
 					recovered += estado.getRecovered();
 				}
-				
-				response.setConfirmed(confirmed);
-				response.setDeaths(death);
-				response.setRecovered(recovered);
-				response.setCountry(message);
-				response.setMensaje("ok");
 			}
+			response.setConfirmed(confirmed);
+			response.setDeaths(death);
+			response.setRecovered(recovered);
+			response.setCountry(message);
+			response.setMensaje("ok");
+			
 	    }
 		return response;		
 	}
@@ -74,9 +73,10 @@ public class RestData {
 
 	@GetMapping(path = "/estadoMundial", produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody Mundial getTotalMundial(){
-		
-		LOGGER.log(Level.INFO, "Consulta mundial");
-		
+				
+		String mensaje="Consulta muldial";
+	    LOGGER.log(Level.INFO, mensaje);
+
 		RestTemplate restTemplate = new RestTemplate();
 	    ResponseEntity<String> call= restTemplate.getForEntity("https://api.covid19api.com/world/total" ,String.class);
 	    Mundial response = new Mundial();
@@ -84,13 +84,15 @@ public class RestData {
 		if(call != null)
 		{
 			String body = call.getBody();
-			if(body != null)
-			{
-				Mundial estado = gson.fromJson(body.toLowerCase(), Mundial.class);
-				response.setTotalConfirmed(estado.getTotalConfirmed());
-				response.setTotalDeaths(estado.getTotalDeaths());
-				response.setTotalRecovered(estado.getTotalRecovered());
-			}
+			
+				Mundial estado =(body != null)? gson.fromJson(body.toLowerCase(), Mundial.class):null;
+				if(estado !=  null)
+				{
+					response.setTotalConfirmed(estado.getTotalConfirmed());
+					response.setTotalDeaths(estado.getTotalDeaths());
+					response.setTotalRecovered(estado.getTotalRecovered());
+				}
+			
 		}
 		return response;		
 	}
