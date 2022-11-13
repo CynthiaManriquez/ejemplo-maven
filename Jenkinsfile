@@ -8,7 +8,7 @@ pipeline {
                 sh './mvnw clean compile -e'
             }
         }
-        stage('Sonar') {
+        stage('sonarqube') {
             steps {
                  script {      
                 withSonarQubeEnv('Sonar') {
