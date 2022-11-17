@@ -1,38 +1,41 @@
 pipeline {
     agent any
-
-    stages {
+    tools {
+    maven 'Maven-3.8.6'
+    }
+      stages {
         stage('Build') {
             steps {
-                echo 'TODO: build'
-                sh './mvnw clean compile -e'
-            }
-        }
-        stage('sonarqube') {
-            steps {
-                 script {      
-                withSonarQubeEnv('sonarqube') {
-                sh './mvnw clean package sonar:sonar'
-                }
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'TODO: test'
-                sh './mvnw clean test -e'
+                echo 'TODO: build install'
+                sh 'mvn clean install'
             }
         }
         stage('Package') {
             steps {
                 echo 'TODO: package'
-                sh './mvnw clean package -e'           
+                sh 'mvn clean package -e'           
             }
         }
-        stage('Run') {
+       // stage('Sonar') {
+       //     steps {
+      //           script {      
+       //         withSonarQubeEnv('Sonar') {
+       //         sh 'mvn clean package sonar:sonar -Dsonar.projectKey=ejemplo-nexus -Dsonar.java.binaries=build'
+       //            }
+       //         }
+       //     }
+      //  }
+	stage("Publish to Nexus Repository Manager") {
             steps {
-                echo 'TODO: run'
-                sh 'nohup bash ./mvnw spring-boot:run &'         
+                script {
+                   nexusPublisher nexusInstanceId: 'Nexus-Repository', nexusRepositoryId: 'devops-usach-nexus', 
+			packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: "${workspace}/build/DevOpsUsach2020-0.0.1.jar"]],
+		        mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
+                }
+            }
+        }      
+        stage('Clean Workspace') {
+            steps {
                 cleanWs()
             }
         }
