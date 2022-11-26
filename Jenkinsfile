@@ -1,47 +1,56 @@
 pipeline {
     agent any
     tools {
-    maven 'Maven-3.8.6'
+        maven 'Maven-3.8.6'
+        gradle 'Gradle'
     }
-      stages {
-        stage('Build') {
-            steps {
-                echo 'TODO: build install'
-                sh 'mvn clean install'
-            }
-        }
-        stage('Package') {
-            steps {
-                echo 'TODO: package'
-                sh 'mvn clean package -e'           
-            }
-        }
-       // stage('Sonar') {
-       //     steps {
-      //           script {      
-       //         withSonarQubeEnv('Sonar') {
-       //         sh 'mvn clean package sonar:sonar -Dsonar.projectKey=ejemplo-nexus -Dsonar.java.binaries=build'
-       //            }
-       //         }
-       //     }
-      //  }
-	stage("Publish to Nexus Repository Manager") {
-            steps {
+	parameters{
+		choice choices: ['maven','gradle'], name: 'Build_Tool'
+	    booleanParam 'PushNexus'
+	}
+    stages {
+        stage('Maven') {
+            when {
+				expression{
+					params.Build_Tool == 'maven'
+				}
+			}
+			steps {
                 script {
-                   nexusPublisher nexusInstanceId: 'Nexus-Repository', nexusRepositoryId: 'devops-usach-nexus', 
-			packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: "${workspace}/build/DevOpsUsach2020-0.0.1.jar"]],
-		        mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '1.0.1']]]
+                    def script_mvn = load 'maven.groovy'
+                    script_mvn.mvn_build()
+                    script_mvn.mvn_sonar()
+                    script_mvn.mvn_test()
+                    script_mvn.mvn_package()
+                    script_mvn.mvn_run()
                 }
             }
-        }     
-       stage('Pull the file off Nexus'){
-           steps{
-            withCredentials([usernameColonPassword(credentialsId: 'nexus-credencial-devops', variable: 'NEXUS_CREDENTIALS')]){
-                sh script: 'curl -u ${NEXUS_CREDENTIALS} -o DevOpsUsach2020-0.0.1.jar "http://nexus:8081/repository/devops-usach-nexus/com/devopsusach2020/DevOpsUsach2020/0.0.1/DevOpsUsach2020-0.0.1.jar"'
+        }
+		stage('Gradle') {
+            when {
+				expression{
+					params.Build_Tool == 'gradle'
+				}
+			}
+			steps {
+                script {
+                    def script_gradle = load 'gradle.groovy' 
+                    script_gradle.grdl_compile()
+                    script_gradle.grdl_run()
+                    script_gradle.grdl_test()
+                }
             }
-          }
-               
-        }  
+        }
+        stage('Push to Nexus') {
+           when {
+				expression{
+					params.PushNexus
+				}
+			}
+		   steps {
+                nexusPublisher nexusInstanceId: 'NexusServer', nexusRepositoryId: 'devops-usach-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: "${WORKSPACE}/build/DevOpsUsach2020-0.0.1.jar"]], mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.2']]]
+            }
+        } 
         stage('Clean Workspace') {
             steps {
                 cleanWs()
