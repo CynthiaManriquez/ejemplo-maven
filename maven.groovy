@@ -5,7 +5,7 @@ def mvn_build() {
 }
 def mvn_sonar() {
     stage('Sonar'){
-        withSonarQubeEnv('Sonar') {
+        withSonarQubeEnv('sonarqube') {
             sh 'mvn clean package sonar:sonar -Dsonar.projectKey=ejemplo-nexus -Dsonar.java.binaries=build'
         }
     }     
