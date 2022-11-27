@@ -42,6 +42,11 @@ pipeline {
             }
         }
       stage("Publish to Nexus") {
+	       when {
+				expression{
+					params.PushNexus
+				}
+			}
             steps {
                 script {
                    nexusPublisher nexusInstanceId: 'Nexus-Repository', nexusRepositoryId: 'devops-usach-nexus', 
